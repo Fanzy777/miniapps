@@ -46,10 +46,10 @@
             height: 50px;
             cursor: pointer;
             user-select: none;
-            transition: transform 0.1s;
             font-size: 30px;
             text-align: center;
             filter: drop-shadow(0 4px 2px rgba(0,0,0,0.3));
+            transition: transform 0.1s;
         }
         .bottle:hover {
             transform: scale(1.1);
@@ -57,137 +57,145 @@
         .bottle:active {
             transform: scale(0.9);
         }
+        .cooldown-msg {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.85);
+            color: #ff4444;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            border: 2px solid #ff4444;
+            z-index: 999;
+            text-align: center;
+            display: none;
+        }
         .footer {
             background: rgba(0,0,0,0.5);
             padding: 15px;
             display: flex;
             justify-content: center;
-            gap: 20px;
         }
         button {
-            background: gold;
-            color: black;
-            border: none;
+            background: #ff4444;
+            color: white;
+            border: 2px solid #cc0000;
             padding: 15px 30px;
             font-size: 18px;
             border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
             transition: 0.2s;
-            border: 2px solid #b8860b;
         }
-        button:hover {
-            background: #ffd700;
-            transform: scale(1.05);
-        }
-        button:active {
-            transform: scale(0.95);
-        }
-        .finish-btn {
-            background: #ff4444;
-            color: white;
-            border: 2px solid #cc0000;
-        }
+        button:hover { transform: scale(1.05); }
+        button:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
-    <div class="header">
-        🍾 СБОРЩИК БУТЫЛОК
-    </div>
+    <div class="header">🍾 СБОРЩИК БУТЫЛОК</div>
     <div class="stats">
         <span>Собрано: <span id="count">0</span></span>
         <span>⏱️ Время: <span id="timer">0</span>с</span>
     </div>
-    <div class="game-area" id="gameArea">
-        <!-- Бутылки будут появляться здесь -->
-    </div>
+    <div class="game-area" id="gameArea"></div>
+    <div class="cooldown-msg" id="cooldownMsg">⏳ Не так быстро!</div>
     <div class="footer">
-        <button onclick="finishCollection()" class="finish-btn">🏁 ЗАКОНЧИТЬ СБОР</button>
+        <button onclick="finishCollection()">🏁 ЗАКОНЧИТЬ СБОР</button>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
-        
+
         let collected = 0;
         let timeElapsed = 0;
         let timerInterval;
         let gameActive = true;
-        
-        // Создаём бутылки
+        let lastCollectTime = 0;
+        const COOLDOWN_MS = 5000; // 5 секунд между сборами
+
+        function showCooldown(secondsLeft) {
+            const msg = document.getElementById('cooldownMsg');
+            msg.textContent = `⏳ Не так быстро! Подожди ${secondsLeft} сек.`;
+            msg.style.display = 'block';
+            clearTimeout(msg._hideTimer);
+            msg._hideTimer = setTimeout(() => {
+                msg.style.display = 'none';
+            }, 1500);
+        }
+
         function createBottle() {
             if (!gameActive) return;
-            
+
             const gameArea = document.getElementById('gameArea');
+            
+            // Удаляем старую бутылку если вдруг осталась
+            const old = gameArea.querySelector('.bottle');
+            if (old) old.remove();
+
             const bottle = document.createElement('div');
             bottle.className = 'bottle';
             bottle.innerHTML = '🍾';
-            
-            // Случайная позиция
+
             const maxX = gameArea.clientWidth - 50;
             const maxY = gameArea.clientHeight - 60;
             const x = Math.max(10, Math.min(maxX, Math.random() * maxX));
             const y = Math.max(10, Math.min(maxY, Math.random() * maxY));
-            
+
             bottle.style.left = x + 'px';
             bottle.style.top = y + 'px';
-            
-            bottle.onclick = function() {
+
+            bottle.onclick = function () {
                 if (!gameActive) return;
+
+                const now = Date.now();
+                const diff = now - lastCollectTime;
+
+                if (lastCollectTime !== 0 && diff < COOLDOWN_MS) {
+                    const secondsLeft = Math.ceil((COOLDOWN_MS - diff) / 1000);
+                    showCooldown(secondsLeft);
+                    return;
+                }
+
+                lastCollectTime = now;
                 collected++;
                 document.getElementById('count').innerText = collected;
                 this.remove();
-                createBottle(); // создаём новую
+
+                // Новая бутылка появляется через небольшую паузу
+                setTimeout(createBottle, 300);
             };
-            
+
             gameArea.appendChild(bottle);
-            
-            // Автоматически удаляем старые бутылки
-            setTimeout(() => {
-                if (bottle.parentNode) {
-                    bottle.remove();
-                    if (gameActive) createBottle(); // создаём новую
-                }
-            }, 5000 + Math.random() * 3000);
         }
-        
-        // Запускаем создание бутылок
+
         function startGame() {
-            // Создаём несколько начальных бутылок
-            for (let i = 0; i < 5; i++) {
-                setTimeout(() => createBottle(), i * 200);
-            }
-            
-            // Таймер
+            createBottle(); // только 1 бутылка
+
             timerInterval = setInterval(() => {
                 timeElapsed++;
                 document.getElementById('timer').innerText = timeElapsed;
             }, 1000);
         }
-        
-        // Завершение сбора
+
         function finishCollection() {
             gameActive = false;
             clearInterval(timerInterval);
-            
-            // Удаляем все бутылки
+
             document.querySelectorAll('.bottle').forEach(b => b.remove());
-            
-            // Отправляем данные в бота
+
             tg.sendData(JSON.stringify({
                 action: 'collect',
                 count: collected
             }));
-            
-            // Показываем результат
-            alert(`Сбор завершён! Отправляю данные боту...`);
-            
-            // Закрываем мини-апп
-            setTimeout(() => tg.close(), 1000);
+
+            setTimeout(() => tg.close(), 500);
         }
-        
-        // Запускаем игру при загрузке
+
         window.onload = startGame;
     </script>
 </body>
