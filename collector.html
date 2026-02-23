@@ -114,7 +114,6 @@
         let timeElapsed = 0;
         let timerInterval;
         let gameActive = true;
-        let bottles = [];
         
         // Создаём бутылки
         function createBottle() {
@@ -182,10 +181,10 @@
             }));
             
             // Показываем результат
-            alert(`Сбор завершён! Ты собрал ${collected} бутылок за ${timeElapsed} секунд.`);
+            alert(`Сбор завершён! Отправляю данные боту...`);
             
             // Закрываем мини-апп
-            tg.close();
+            setTimeout(() => tg.close(), 1000);
         }
         
         // Запускаем игру при загрузке
