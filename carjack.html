@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Car Hacker Game</title>
+    <style>
+        :root {
+            --bg-color: #0d0d0d;
+            --text-color: #00ff41; /* Цвет хакера */
+            --accent-color: #ff003c;
+            --button-bg: #1a1a1a;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #game-container {
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .balance {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .slots-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .slot-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .digit {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: var(--button-bg);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #333;
+            width: 40px;
+            text-align: center;
+            margin-bottom: 10px;
+            transition: color 0.1s;
+        }
+
+        .digit.active {
+            color: #fff;
+        }
+
+        .digit.green {
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        .stop-btn {
+            background: var(--button-bg);
+            color: white;
+            border: 1px solid var(--text-color);
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .stop-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .main-btn {
+            background: var(--text-color);
+            color: black;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #111;
+            padding: 20px;
+            border: 2px solid var(--text-color);
+            z-index: 10;
+            width: 80%;
+            text-align: center;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div class="balance">Баланс: <span id="total-balance">0</span>$</div>
+        <div class="timer">Осталось: <span id="time-left">60</span>с</div>
+
+        <div class="slots-container">
+            <div class="slot-wrapper">
+                <button class="stop-btn" onclick="stopSlot(0)">STOP</button>
+                <div id="digit-0" class="digit">0</div>
+            </div>
+            <div class="slot-wrapper">
+                <button class="stop-btn" onclick="stopSlot(1)">STOP</button>
+                <div id="digit-1" class="digit">0</div>
+            </div>
+            <div class="slot-wrapper">
+                <button class="stop-btn" onclick="stopSlot(2)">STOP</button>
+                <div id="digit-2" class="digit">0</div>
+            </div>
+            <div class="slot-wrapper">
+                <button class="stop-btn" onclick="stopSlot(3)">STOP</button>
+                <div id="digit-3" class="digit">0</div>
+            </div>
+            <div class="slot-wrapper">
+                <button class="stop-btn" onclick="stopSlot(4)">STOP</button>
+                <div id="digit-4" class="digit">0</div>
+            </div>
+        </div>
+
+        <button id="start-btn" class="main-btn" onclick="startGame()">НАЧАТЬ ВЗЛОМ</button>
+    </div>
+
+    <div id="overlay" class="overlay"></div>
+    <div id="modal" class="modal">
+        <h2 id="modal-title">Взлом успешен!</h2>
+        <p id="modal-text"></p>
+        <button class="main-btn" onclick="collectMoney()">ЗАБРАТЬ</button>
+        <button class="main-btn" style="background: #ffa500;" onclick="resetForNewGame()">ВЗЛОМАТЬ ЕЩЕ</button>
+    </div>
+
+    <script>
+        let balance = 0;
+        let currentWin = 0;
+        let timeLeft = 60;
+        let timerInterval;
+        let slotIntervals = [];
+        let slotsFinished = 0;
+        let isGameRunning = false;
+        
+        const digits = [0, 0, 0, 0, 0];
+        const isStopped = [false, false, false, false, false];
+
+        function startGame() {
+            if(isGameRunning) return;
+            isGameRunning = true;
+            slotsFinished = 0;
+            timeLeft = 60;
+            document.getElementById('start-btn').style.display = 'none';
+            document.getElementById('time-left').innerText = timeLeft;
+            
+            // Сброс состояния
+            for(let i=0; i<5; i++) {
+                isStopped[i] = false;
+                document.querySelectorAll('.stop-btn')[i].disabled = false;
+                document.getElementById(`digit-${i}`).classList.remove('green');
+                startSlotSpinning(i);
+            }
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('time-left').innerText = timeLeft;
+                if(timeLeft <= 0) endGame(false);
+            }, 1000);
+        }
+
+        function startSlotSpinning(i) {
+            slotIntervals[i] = setInterval(() => {
+                let randomDigit = Math.floor(Math.random() * 10);
+                let digitEl = document.getElementById(`digit-${i}`);
+                digitEl.innerText = randomDigit;
+                
+                // Шанс 20%, что цифра станет зеленой
+                if(Math.random() > 0.8) {
+                    digitEl.classList.add('green');
+                } else {
+                    digitEl.classList.remove('green');
+                }
+            }, 100);
+        }
+
+        function stopSlot(i) {
+            if(!isGameRunning || isStopped[i]) return;
+
+            const digitEl = document.getElementById(`digit-${i}`);
+            
+            if(digitEl.classList.contains('green')) {
+                clearInterval(slotIntervals[i]);
+                isStopped[i] = true;
+                document.querySelectorAll('.stop-btn')[i].disabled = true;
+                slotsFinished++;
+                
+                if(slotsFinished === 5) endGame(true);
+            } else {
+                // Если нажал не на зеленую - штраф или просто не срабатывает
+                digitEl.style.color = 'red';
+                setTimeout(() => { if(!isStopped[i]) digitEl.style.color = ''; }, 200);
+            }
+        }
+
+        function endGame(isWin) {
+            isGameRunning = false;
+            clearInterval(timerInterval);
+            slotIntervals.forEach(interval => clearInterval(interval));
+
+            if(isWin) {
+                currentWin = Math.floor(Math.random() * (200 - 50 + 1)) + 50;
+                showModal(`Вы взломали систему! Выигрыш: ${currentWin}$`);
+            } else {
+                alert("Время вышло! Полиция едет!");
+                location.reload(); 
+            }
+        }
+
+        function showModal(text) {
+            document.getElementById('modal-text').innerText = text;
+            document.getElementById('modal').style.display = 'block';
+            document.getElementById('overlay').style.display = 'block';
+        }
+
+        function collectMoney() {
+            balance += currentWin;
+            updateBalanceDisplay();
+            closeModal();
+            document.getElementById('start-btn').style.display = 'inline-block';
+        }
+
+        function resetForNewGame() {
+            balance += currentWin;
+            updateBalanceDisplay();
+            closeModal();
+            startGame();
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        function updateBalanceDisplay() {
+            document.getElementById('total-balance').innerText = balance;
+        }
+    </script>
+</body>
+</html>
