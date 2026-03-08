@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>CARJACK</title>
+<title>АВТОУГОН</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
 
@@ -414,14 +414,14 @@
 
   <!-- СТАРТ ЭКРАН -->
   <div class="screen active" id="screen-start">
-    <div class="title">// CARJACK //</div>
+    <div class="title">// АВТОУГОН //</div>
     <div class="hint">ОСТАНОВИ СИМВОЛ В ЗЕЛЁНОЙ ЗОНЕ<br>5 РАЗ ПОДРЯД ЗА 30 СЕКУНД</div>
     <button class="main-btn" id="start-btn">НАЧАТЬ ВЗЛОМ</button>
   </div>
 
   <!-- ИГРОВОЙ ЭКРАН -->
   <div class="screen" id="screen-game">
-    <div class="title">// CARJACK //</div>
+    <div class="title">// АВТОУГОН //</div>
 
     <div class="timer-wrap">
       <span class="timer-label">TIME</span>
@@ -443,7 +443,7 @@
 
   <!-- ЭКРАН РЕЗУЛЬТАТА -->
   <div class="screen" id="screen-result">
-    <div class="title">// CARJACK //</div>
+    <div class="title">// АВТОУГОН //</div>
     <div class="result-title" id="result-title"></div>
     <div class="result-reward" id="result-reward"></div>
     <div class="result-sub" id="result-sub"></div>
@@ -594,7 +594,7 @@
         cd.className = 'char-display rolling';
       }
       cc.textContent = s.char;
-    }, 400);
+    }, 600);
   }
 
   function stopSlot(i) {
@@ -663,7 +663,6 @@
     const btns = document.getElementById('result-btns');
     btns.innerHTML = `
       <button class="btn-claim" id="btn-claim">💰 ЗАБРАТЬ $${pendingReward}</button>
-      <button class="btn-again" id="btn-again">🔄 ЕЩЁ РАЗ</button>
     `;
 
     document.getElementById('btn-claim').addEventListener('touchend', (e) => { e.preventDefault(); claimReward(); });
@@ -692,7 +691,7 @@
     document.getElementById('btn-retry').addEventListener('click', playAgain);
 
     if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.sendData(JSON.stringify({ action:'carjack', success:false, fine }));
+      window.Telegram.WebApp.sendData(JSON.stringify({ action:'Автоугон', success:false, fine }));
     }
 
     showScreen('screen-result');
@@ -706,7 +705,7 @@
       `<div style="color:var(--dgreen);font-size:12px;letter-spacing:2px;text-align:center">✓ ОТПРАВЛЕНО В БОТ...</div>`;
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.sendData(JSON.stringify({
-        action:'carjack', success:true, reward:pendingReward, time: GAMETIME - timeLeft
+        action:'Автоугон', success:true, reward:pendingReward, time: GAMETIME - timeLeft
       }));
     } else {
       alert(`Награда $${pendingReward}`);
