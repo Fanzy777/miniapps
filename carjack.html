@@ -755,16 +755,6 @@
     }
   }
 
-  // ===== ИГРАТЬ ЕЩЁ =====
-  function playAgain() {
-    claimed       = false;
-    pendingReward = 0;
-    document.getElementById('slots-container').innerHTML = '';
-    document.getElementById('timer').textContent = '30';
-    document.getElementById('timer').className   = '';
-    showScreen('screen-start');
-  }
-
   // ===== ЗАКРЫТЬ =====
   function closeApp() {
     if (window.Telegram?.WebApp) {
