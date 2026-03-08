@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/collector", "destination": "/collector.html" },
-    { "source": "/hacker", "destination": "/hacker.html" }
+    { "source": "/hacker", "destination": "/carjack.html" }
   ]
 }
+
