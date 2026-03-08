@@ -36,7 +36,6 @@
     font-family: 'Share Tech Mono', monospace;
   }
 
-  /* Фиксированный полноэкранный враппер */
   #app {
     position: fixed;
     top: 0; left: 0;
@@ -141,7 +140,6 @@
     gap: 5px;
   }
 
-  /* Кнопка СТОП */
   .stop-btn {
     width: clamp(44px, 12vw, 58px);
     height: clamp(32px, 8vw, 40px);
@@ -155,7 +153,6 @@
     border-radius: 5px;
     transition: all 0.15s;
     touch-action: manipulation;
-    /* важно для тача */
     -webkit-tap-highlight-color: transparent;
   }
   .stop-btn:active {
@@ -173,7 +170,6 @@
     pointer-events: none;
   }
 
-  /* Дисплей символа */
   .char-display {
     width: clamp(44px, 12vw, 58px);
     height: clamp(58px, 16vw, 76px);
@@ -396,6 +392,37 @@
     transform: scale(0.97);
   }
 
+  .btn-close {
+    width: 100%;
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(10px, 2.8vw, 13px);
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: clamp(12px, 3.5vw, 15px) 10px;
+    background: transparent;
+    border: 2px solid #1a5a1a;
+    color: var(--dgreen);
+    cursor: pointer;
+    border-radius: 5px;
+    touch-action: manipulation;
+    transition: all 0.15s;
+    margin-top: 4px;
+  }
+  .btn-close:active {
+    border-color: var(--green);
+    color: var(--green);
+    background: rgba(0,255,65,0.08);
+    transform: scale(0.97);
+  }
+
+  .sent-msg {
+    color: var(--dgreen);
+    font-size: clamp(9px, 2.5vw, 12px);
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
   /* Скан-линии */
   body::after {
     content:'';
@@ -503,14 +530,17 @@
   // ===== УТИЛИТЫ =====
   function rndChar()   { return CHARS[Math.floor(Math.random() * CHARS.length)]; }
   function greenChar() { return GREENS[Math.floor(Math.random() * GREENS.length)]; }
+
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
   }
+
   function setStatus(t) { document.getElementById('status-bar').textContent = t; }
+
   function setProgress() {
     document.getElementById('progress-text').textContent = `${locked}/5`;
-    document.getElementById('progress-fill').style.width = `${(locked/TOTAL)*100}%`;
+    document.getElementById('progress-fill').style.width = `${(locked / TOTAL) * 100}%`;
   }
 
   // ===== СТАРТ =====
@@ -565,7 +595,6 @@
       `;
       c.appendChild(div);
 
-      // touch + click на кнопку стоп
       const btn = div.querySelector(`#sb${i}`);
       btn.addEventListener('touchend', (e) => { e.preventDefault(); stopSlot(i); });
       btn.addEventListener('click', () => stopSlot(i));
@@ -579,17 +608,17 @@
     const cd  = document.getElementById(`cd${i}`);
     const cc  = document.getElementById(`cc${i}`);
     const sb  = document.getElementById(`sb${i}`);
-    cd.className  = 'char-display rolling';
-    sb.className  = 'stop-btn';
+    cd.className   = 'char-display rolling';
+    sb.className   = 'stop-btn';
     sb.textContent = 'СТОП';
 
     s.interval = setInterval(() => {
       if (Math.random() < 0.30) {
-        s.char   = greenChar();
+        s.char    = greenChar();
         s.isGreen = true;
         cd.className = 'char-display green-zone';
       } else {
-        s.char   = rndChar();
+        s.char    = rndChar();
         s.isGreen = false;
         cd.className = 'char-display rolling';
       }
@@ -617,8 +646,11 @@
       setProgress();
       if (locked === TOTAL) setTimeout(() => gameWin(), 300);
     } else {
+      // промах — сбрасываем все
       cd.className   = 'char-display rolling';
       sb.textContent = 'СТОП';
+      s.locked  = false;
+      s.rolling = true;
       setTimeout(() => {
         resetSlots();
         setStatus('⚠ ПРОМАХ! СБРОС...');
@@ -633,9 +665,11 @@
     slots.forEach((s, i) => {
       if (!gameActive) return;
       clearInterval(s.interval);
-      s.locked = false; s.rolling = false;
+      s.locked  = false;
+      s.rolling = false;
       const cd = document.getElementById(`cd${i}`);
       const sb = document.getElementById(`sb${i}`);
+      if (!cd || !sb) return;
       cd.className   = 'char-display rolling';
       sb.className   = 'stop-btn';
       sb.textContent = 'СТОП';
@@ -667,8 +701,6 @@
 
     document.getElementById('btn-claim').addEventListener('touchend', (e) => { e.preventDefault(); claimReward(); });
     document.getElementById('btn-claim').addEventListener('click', claimReward);
-    document.getElementById('btn-again').addEventListener('touchend', (e) => { e.preventDefault(); playAgain(); });
-    document.getElementById('btn-again').addEventListener('click', playAgain);
 
     showScreen('screen-result');
   }
@@ -691,21 +723,32 @@
     document.getElementById('btn-retry').addEventListener('click', playAgain);
 
     if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.sendData(JSON.stringify({ action:'Автоугон', success:false, fine }));
+      window.Telegram.WebApp.sendData(JSON.stringify({ action: 'carjack', success: false, fine }));
     }
 
     showScreen('screen-result');
   }
 
-  // ===== ЗАБРАТЬ =====
+  // ===== ЗАБРАТЬ НАГРАДУ =====
   function claimReward() {
     if (claimed) return;
     claimed = true;
-    document.getElementById('result-btns').innerHTML =
-      `<div style="color:var(--dgreen);font-size:12px;letter-spacing:2px;text-align:center">✓ ОТПРАВЛЕНО В БОТ...</div>`;
+
+    const btns = document.getElementById('result-btns');
+    btns.innerHTML = `
+      <div class="sent-msg">✓ ОТПРАВЛЕНО В БОТ...</div>
+      <button class="btn-close" id="btn-close">✕ ЗАКРЫТЬ</button>
+    `;
+
+    document.getElementById('btn-close').addEventListener('touchend', (e) => { e.preventDefault(); closeApp(); });
+    document.getElementById('btn-close').addEventListener('click', closeApp);
+
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.sendData(JSON.stringify({
-        action:'Автоугон', success:true, reward:pendingReward, time: GAMETIME - timeLeft
+        action: 'carjack',
+        success: true,
+        reward: pendingReward,
+        time: GAMETIME - timeLeft
       }));
     } else {
       alert(`Награда $${pendingReward}`);
@@ -714,12 +757,19 @@
 
   // ===== ИГРАТЬ ЕЩЁ =====
   function playAgain() {
-    claimed = false;
+    claimed       = false;
     pendingReward = 0;
     document.getElementById('slots-container').innerHTML = '';
     document.getElementById('timer').textContent = '30';
     document.getElementById('timer').className   = '';
     showScreen('screen-start');
+  }
+
+  // ===== ЗАКРЫТЬ =====
+  function closeApp() {
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.close();
+    }
   }
 </script>
 </body>
