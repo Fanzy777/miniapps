@@ -31,6 +31,34 @@
             justify-content: space-around;
             font-size: 18px;
         }
+        .exp-hint {
+            background: rgba(255, 215, 0, 0.15);
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            padding: 6px 12px;
+            text-align: center;
+            font-size: 13px;
+            color: #ffd700;
+        }
+        .exp-popup {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 215, 0, 0.9);
+            color: #1a1a1a;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .exp-popup.show {
+            opacity: 1;
+        }
         .game-area {
             flex: 1;
             position: relative;
@@ -99,7 +127,10 @@
     <div class="stats">
         <span>Собрано: <span id="count">0</span></span>
         <span>⏱️ Время: <span id="timer">0</span>с</span>
+        <span>✨ До опыта: <span id="expCountdown">10</span></span>
     </div>
+    <div class="exp-hint">⭐ Каждые 10 бутылок = +1 опыт при сдаче скупщику</div>
+    <div class="exp-popup" id="expPopup">⭐ +1 опыт при сдаче!</div>
     <div class="game-area" id="gameArea"></div>
     <div class="cooldown-msg" id="cooldownMsg">⏳ Не так быстро!</div>
     <div class="footer">
@@ -117,6 +148,18 @@
         let gameActive = true;
         let lastCollectTime = 0;
         const COOLDOWN_MS = 5000;
+        const EXP_PER_BOTTLES = 10;
+
+        function updateExpCountdown() {
+            const remaining = EXP_PER_BOTTLES - (collected % EXP_PER_BOTTLES);
+            document.getElementById('expCountdown').innerText = remaining;
+        }
+
+        function showExpPopup() {
+            const popup = document.getElementById('expPopup');
+            popup.classList.add('show');
+            setTimeout(() => popup.classList.remove('show'), 1500);
+        }
 
         function showCooldown(secondsLeft) {
             const msg = document.getElementById('cooldownMsg');
@@ -132,7 +175,6 @@
             if (!gameActive) return;
 
             const gameArea = document.getElementById('gameArea');
-
             const old = gameArea.querySelector('.bottle');
             if (old) old.remove();
 
@@ -163,8 +205,14 @@
                 lastCollectTime = now;
                 collected++;
                 document.getElementById('count').innerText = collected;
-                this.remove();
 
+                // Каждые 10 бутылок — показываем уведомление про опыт
+                if (collected % EXP_PER_BOTTLES === 0) {
+                    showExpPopup();
+                }
+
+                updateExpCountdown();
+                this.remove();
                 setTimeout(createBottle, 300);
             };
 
@@ -172,6 +220,7 @@
         }
 
         function startGame() {
+            updateExpCountdown();
             createBottle();
 
             timerInterval = setInterval(() => {
@@ -183,7 +232,6 @@
         function finishCollection() {
             gameActive = false;
             clearInterval(timerInterval);
-
             document.querySelectorAll('.bottle').forEach(b => b.remove());
 
             tg.sendData(JSON.stringify({
