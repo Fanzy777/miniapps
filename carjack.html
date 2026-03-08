@@ -6,6 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>АВТОУГОН</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
 
@@ -56,7 +57,6 @@
     pointer-events: none;
   }
 
-  /* ===== ЭКРАНЫ ===== */
   .screen {
     position: absolute;
     top: 0; left: 0;
@@ -71,7 +71,6 @@
   }
   .screen.active { display: flex; }
 
-  /* ===== ЗАГОЛОВОК ===== */
   .title {
     font-family: 'Orbitron', monospace;
     font-size: clamp(16px, 4.5vw, 24px);
@@ -91,7 +90,6 @@
     99% { opacity:1; }
   }
 
-  /* ===== ТАЙМЕР ===== */
   .timer-wrap {
     display: flex;
     align-items: center;
@@ -116,7 +114,6 @@
   #timer.danger  { color: var(--red); text-shadow: 0 0 12px var(--red); animation: pulse 0.5s infinite; }
   @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
-  /* ===== СТАТУС ===== */
   .status-bar {
     font-size: clamp(9px, 2.5vw, 12px);
     letter-spacing: 2px;
@@ -125,7 +122,6 @@
     min-height: 16px;
   }
 
-  /* ===== СЛОТЫ ===== */
   .slots-container {
     display: flex;
     gap: clamp(6px, 2vw, 12px);
@@ -219,7 +215,6 @@
     text-shadow: 0 0 16px var(--green), 0 0 32px var(--green);
   }
 
-  /* ===== ПРОГРЕСС ===== */
   .progress-wrap {
     width: 100%;
     max-width: 340px;
@@ -249,7 +244,6 @@
     border-radius: 3px;
   }
 
-  /* ===== КНОПКА СТАРТ ===== */
   .main-btn {
     font-family: 'Orbitron', monospace;
     font-size: clamp(12px, 3.5vw, 16px);
@@ -280,7 +274,6 @@
     max-width: 300px;
   }
 
-  /* ===== ЭКРАН РЕЗУЛЬТАТА ===== */
   .result-title {
     font-family: 'Orbitron', monospace;
     font-size: clamp(22px, 7vw, 34px);
@@ -349,28 +342,6 @@
     transform: scale(0.97);
   }
 
-  .btn-again {
-    flex: 1; min-width: 130px;
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(10px, 2.8vw, 13px);
-    font-weight: 700;
-    letter-spacing: 1px;
-    padding: clamp(12px, 3.5vw, 15px) 10px;
-    background: transparent;
-    border: 2px solid #1a5a1a;
-    color: var(--dgreen);
-    cursor: pointer;
-    border-radius: 5px;
-    touch-action: manipulation;
-    transition: all 0.15s;
-  }
-  .btn-again:active {
-    border-color: var(--green);
-    color: var(--green);
-    background: rgba(0,255,65,0.08);
-    transform: scale(0.97);
-  }
-
   .btn-retry {
     font-family: 'Orbitron', monospace;
     font-size: clamp(11px, 3vw, 14px);
@@ -423,7 +394,6 @@
     margin-bottom: 8px;
   }
 
-  /* Скан-линии */
   body::after {
     content:'';
     position:fixed; top:0; left:0; right:0; bottom:0;
@@ -480,6 +450,12 @@
 </div>
 
 <script>
+  // Инициализация Telegram WebApp
+  if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+  }
+
   // ===== МАТРИЦА =====
   const canvas = document.getElementById('matrix-canvas');
   const ctx    = canvas.getContext('2d');
@@ -527,7 +503,6 @@
   let pendingReward = 0;
   let claimed       = false;
 
-  // ===== УТИЛИТЫ =====
   function rndChar()   { return CHARS[Math.floor(Math.random() * CHARS.length)]; }
   function greenChar() { return GREENS[Math.floor(Math.random() * GREENS.length)]; }
 
@@ -646,7 +621,6 @@
       setProgress();
       if (locked === TOTAL) setTimeout(() => gameWin(), 300);
     } else {
-      // промах — сбрасываем все
       cd.className   = 'char-display rolling';
       sb.textContent = 'СТОП';
       s.locked  = false;
@@ -686,7 +660,7 @@
   // ===== ПОБЕДА =====
   function gameWin() {
     endGame();
-    pendingReward = Math.floor(Math.random() * 201) + 50; // $50–$250
+    pendingReward = Math.floor(Math.random() * 201) + 50;
 
     document.getElementById('result-title').className   = 'result-title success';
     document.getElementById('result-title').textContent = '✓ ВЗЛОМАНО';
@@ -695,9 +669,7 @@
     document.getElementById('result-sub').textContent   = `ТАЧКА УГНАНА // ${GAMETIME - timeLeft} СЕК`;
 
     const btns = document.getElementById('result-btns');
-    btns.innerHTML = `
-      <button class="btn-claim" id="btn-claim">💰 ЗАБРАТЬ $${pendingReward}</button>
-    `;
+    btns.innerHTML = `<button class="btn-claim" id="btn-claim">💰 ЗАБРАТЬ $${pendingReward}</button>`;
 
     document.getElementById('btn-claim').addEventListener('touchend', (e) => { e.preventDefault(); claimReward(); });
     document.getElementById('btn-claim').addEventListener('click', claimReward);
@@ -708,7 +680,7 @@
   // ===== ПОРАЖЕНИЕ =====
   function gameFail() {
     endGame();
-    const fine = Math.floor(Math.random() * 151) + 50; // $50–$200
+    const fine = Math.floor(Math.random() * 151) + 50;
 
     document.getElementById('result-title').className   = 'result-title fail';
     document.getElementById('result-title').textContent = '✗ ПОЙМАЛИ';
@@ -719,11 +691,11 @@
     const btns = document.getElementById('result-btns');
     btns.innerHTML = `<button class="btn-retry" id="btn-retry">↺ СНОВА</button>`;
 
-    document.getElementById('btn-retry').addEventListener('touchend', (e) => { e.preventDefault(); playAgain(); });
-    document.getElementById('btn-retry').addEventListener('click', playAgain);
+    document.getElementById('btn-retry').addEventListener('touchend', (e) => { e.preventDefault(); startGame(); });
+    document.getElementById('btn-retry').addEventListener('click', startGame);
 
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.sendData(JSON.stringify({ action: 'carjack', success: false, fine }));
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.sendData(JSON.stringify({ action: 'carjack', success: false, fine: fine }));
     }
 
     showScreen('screen-result');
@@ -743,7 +715,7 @@
     document.getElementById('btn-close').addEventListener('touchend', (e) => { e.preventDefault(); closeApp(); });
     document.getElementById('btn-close').addEventListener('click', closeApp);
 
-    if (window.Telegram?.WebApp) {
+    if (window.Telegram && window.Telegram.WebApp) {
       window.Telegram.WebApp.sendData(JSON.stringify({
         action: 'carjack',
         success: true,
@@ -751,13 +723,13 @@
         time: GAMETIME - timeLeft
       }));
     } else {
-      alert(`Награда $${pendingReward}`);
+      alert('Награда $' + pendingReward);
     }
   }
 
   // ===== ЗАКРЫТЬ =====
   function closeApp() {
-    if (window.Telegram?.WebApp) {
+    if (window.Telegram && window.Telegram.WebApp) {
       window.Telegram.WebApp.close();
     }
   }
