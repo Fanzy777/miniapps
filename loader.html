@@ -1,0 +1,476 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body-sim { display: block; }
+  .gw-wrap {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e, #2a2a4e);
+    color: white;
+    min-height: 520px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .gw-header {
+    background: rgba(0,0,0,0.5);
+    padding: 12px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    border-bottom: 2px solid #f0a500;
+    letter-spacing: 1px;
+  }
+  .gw-stats {
+    background: rgba(0,0,0,0.3);
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-around;
+    font-size: 15px;
+    gap: 6px;
+  }
+  .gw-hint {
+    background: rgba(240,165,0,0.12);
+    border: 1px solid rgba(240,165,0,0.35);
+    padding: 5px 10px;
+    text-align: center;
+    font-size: 12px;
+    color: #f0c040;
+  }
+  .gw-game {
+    flex: 1;
+    position: relative;
+    min-height: 300px;
+    display: flex;
+    overflow: hidden;
+  }
+  .gw-zone {
+    width: 22%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    z-index: 2;
+  }
+  .gw-zone-left {
+    background: rgba(0,80,200,0.18);
+    border-right: 2px dashed rgba(100,150,255,0.4);
+  }
+  .gw-zone-right {
+    background: rgba(0,160,80,0.18);
+    border-left: 2px dashed rgba(80,220,120,0.4);
+  }
+  .gw-zone-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .gw-mid {
+    flex: 1;
+    position: relative;
+    background: rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .gw-mid-arrow {
+    font-size: 36px;
+    opacity: 0.12;
+    user-select: none;
+  }
+  .box-slot {
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    cursor: pointer;
+    transition: transform 0.12s, opacity 0.15s;
+    user-select: none;
+    position: relative;
+  }
+  .box-slot.ready {
+    background: rgba(255,200,50,0.22);
+    border: 2px solid rgba(255,200,50,0.5);
+  }
+  .box-slot.ready:hover { transform: scale(1.1); }
+  .box-slot.ready:active { transform: scale(0.9); }
+  .box-slot.empty {
+    background: rgba(255,255,255,0.05);
+    border: 2px dashed rgba(255,255,255,0.15);
+    cursor: default;
+  }
+  .box-slot.done {
+    background: rgba(60,200,100,0.2);
+    border: 2px solid rgba(60,200,100,0.4);
+    cursor: default;
+    opacity: 0.7;
+  }
+  .box-slot.carrying {
+    background: rgba(255,160,30,0.3);
+    border: 2px solid rgba(255,160,30,0.6);
+    animation: pulse-box 0.5s infinite alternate;
+  }
+  @keyframes pulse-box { from { transform: scale(1); } to { transform: scale(1.07); } }
+
+  .drop-target {
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    cursor: pointer;
+    transition: transform 0.12s;
+    user-select: none;
+  }
+  .drop-target.waiting {
+    background: rgba(255,255,255,0.05);
+    border: 2px dashed rgba(80,220,120,0.3);
+    cursor: default;
+  }
+  .drop-target.active {
+    background: rgba(60,200,100,0.25);
+    border: 2px solid rgba(60,200,100,0.6);
+    animation: pulse-drop 0.6s infinite alternate;
+  }
+  .drop-target.active:hover { transform: scale(1.08); }
+  .drop-target.active:active { transform: scale(0.92); }
+  @keyframes pulse-drop { from { box-shadow: 0 0 0 0 rgba(60,200,100,0.3); } to { box-shadow: 0 0 0 6px rgba(60,200,100,0); } }
+  .drop-target.filled {
+    background: rgba(60,200,100,0.2);
+    border: 2px solid rgba(60,200,100,0.5);
+    cursor: default;
+  }
+
+  .gw-popup {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,200,50,0.93);
+    color: #1a1000;
+    padding: 7px 18px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.25s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .gw-popup.show { opacity: 1; }
+
+  .gw-cd-msg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.88);
+    color: #ff5555;
+    padding: 12px 22px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: bold;
+    border: 2px solid #ff4444;
+    z-index: 200;
+    text-align: center;
+    display: none;
+    white-space: nowrap;
+  }
+
+  .gw-player {
+    position: absolute;
+    font-size: 28px;
+    transition: left 0.35s ease, top 0.35s ease;
+    z-index: 50;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  }
+
+  .gw-footer {
+    background: rgba(0,0,0,0.5);
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+  }
+  .gw-btn {
+    background: #cc3300;
+    color: white;
+    border: 2px solid #991100;
+    padding: 12px 28px;
+    font-size: 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.15s;
+  }
+  .gw-btn:hover { transform: scale(1.05); }
+  .gw-btn:active { transform: scale(0.95); }
+
+  .cd-bar-wrap {
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    width: 100%;
+    margin-top: 2px;
+  }
+  .cd-bar {
+    height: 100%;
+    background: #f0a500;
+    border-radius: 2px;
+    transition: width 0.1s linear;
+  }
+</style>
+
+<div class="gw-wrap" id="gwWrap">
+  <div class="gw-header">📦 ГРУЗЧИК</div>
+  <div class="gw-stats">
+    <span>Перенесено: <span id="gwCount">0</span></span>
+    <span>⏱ Время: <span id="gwTimer">0</span>с</span>
+    <span>✨ До опыта: <span id="gwExp">5</span></span>
+  </div>
+  <div class="gw-hint">⭐ Каждые 5 коробок = +1 опыт при сдаче</div>
+
+  <div class="gw-game" id="gwGame">
+    <div class="gw-zone gw-zone-left" id="zoneLeft">
+      <div class="gw-zone-label">Склад</div>
+    </div>
+    <div class="gw-mid">
+      <div class="gw-mid-arrow">→</div>
+      <div class="gw-popup" id="gwPopup">⭐ +1 опыт при сдаче!</div>
+      <div class="gw-cd-msg" id="gwCdMsg">⏳ Подожди!</div>
+      <div class="gw-player" id="gwPlayer">🚶</div>
+    </div>
+    <div class="gw-zone gw-zone-right" id="zoneRight">
+      <div class="gw-zone-label">Грузовик</div>
+    </div>
+  </div>
+
+  <div style="background:rgba(0,0,0,0.25); padding: 6px 16px; display:flex; align-items:center; gap:10px; font-size:12px; color:rgba(255,255,255,0.6);">
+    <span>Перезарядка:</span>
+    <div class="cd-bar-wrap" style="flex:1;"><div class="cd-bar" id="cdBar" style="width:100%"></div></div>
+    <span id="cdSec">0с</span>
+  </div>
+
+  <div class="gw-footer">
+    <button class="gw-btn" onclick="gwFinish()">🏁 ЗАКОНЧИТЬ РАБОТУ</button>
+  </div>
+</div>
+
+<script>
+  const SLOTS = 3;
+  const EXP_EVERY = 5;
+  const COOLDOWN = 4000;
+
+  let collected = 0;
+  let timeElapsed = 0;
+  let gameActive = true;
+  let lastPickTime = 0;
+  let carrying = false;
+  let timerInt, cdInt;
+  let cdRemain = 0;
+
+  const zoneLeft = document.getElementById('zoneLeft');
+  const zoneRight = document.getElementById('zoneRight');
+  const gwPlayer = document.getElementById('gwPlayer');
+  const gwGame = document.getElementById('gwGame');
+
+  const BOX_TYPES = ['📦','📦','📦','🗃️','🗃️','📫'];
+
+  function randomBox() {
+    return BOX_TYPES[Math.floor(Math.random() * BOX_TYPES.length)];
+  }
+
+  function buildZones() {
+    for (let i = 0; i < SLOTS; i++) {
+      const s = document.createElement('div');
+      s.className = 'box-slot ready';
+      s.id = 'slot' + i;
+      s.innerHTML = randomBox();
+      s.onclick = () => pickBox(i);
+      zoneLeft.appendChild(s);
+    }
+    for (let i = 0; i < SLOTS; i++) {
+      const d = document.createElement('div');
+      d.className = 'drop-target waiting';
+      d.id = 'drop' + i;
+      d.innerHTML = '&nbsp;';
+      d.onclick = () => dropBox(i);
+      zoneRight.appendChild(d);
+    }
+  }
+
+  function setPlayerPos(side) {
+    const rect = gwGame.getBoundingClientRect();
+    const wrap = gwGame;
+    if (side === 'mid') {
+      gwPlayer.style.left = '50%';
+      gwPlayer.style.top = '50%';
+      gwPlayer.style.transform = 'translate(-50%,-50%)';
+    } else if (side === 'left') {
+      gwPlayer.style.left = '18%';
+      gwPlayer.style.top = '50%';
+      gwPlayer.style.transform = 'translate(-50%,-50%)';
+    } else {
+      gwPlayer.style.left = '82%';
+      gwPlayer.style.top = '50%';
+      gwPlayer.style.transform = 'translate(-50%,-50%)';
+    }
+  }
+
+  function pickBox(idx) {
+    if (!gameActive || carrying) return;
+    const now = Date.now();
+    const diff = now - lastPickTime;
+    if (lastPickTime !== 0 && diff < COOLDOWN) {
+      const s = Math.ceil((COOLDOWN - diff) / 1000);
+      showCdMsg(`⏳ Подожди ${s} сек.`);
+      return;
+    }
+    const slot = document.getElementById('slot' + idx);
+    if (!slot || slot.classList.contains('empty') || slot.classList.contains('done')) return;
+
+    carrying = true;
+    lastPickTime = now;
+    slot.classList.remove('ready');
+    slot.classList.add('carrying');
+    gwPlayer.textContent = '🏃';
+    setPlayerPos('right');
+
+    startCdBar();
+
+    const drops = document.querySelectorAll('.drop-target.waiting');
+    if (drops.length > 0) {
+      drops[0].classList.remove('waiting');
+      drops[0].classList.add('active');
+      drops[0].dataset.slotIdx = idx;
+    }
+  }
+
+  function dropBox(dIdx) {
+    if (!gameActive || !carrying) return;
+    const drop = document.getElementById('drop' + dIdx);
+    if (!drop || !drop.classList.contains('active')) return;
+
+    const sIdx = parseInt(drop.dataset.slotIdx);
+    const slot = document.getElementById('slot' + sIdx);
+
+    drop.classList.remove('active');
+    drop.classList.add('filled');
+    drop.textContent = slot ? slot.textContent : '📦';
+
+    if (slot) {
+      slot.classList.remove('carrying');
+      slot.classList.add('done');
+      slot.textContent = '✓';
+      slot.onclick = null;
+    }
+
+    carrying = false;
+    collected++;
+    document.getElementById('gwCount').textContent = collected;
+    updateExp();
+
+    if (collected % EXP_EVERY === 0) showPopup('⭐ +1 опыт при сдаче!');
+
+    gwPlayer.textContent = '🚶';
+    setPlayerPos('mid');
+
+    const remaining = document.querySelectorAll('.box-slot.ready');
+    if (remaining.length === 0) {
+      setTimeout(resetSlots, 600);
+    }
+  }
+
+  function resetSlots() {
+    const slots = document.querySelectorAll('.box-slot');
+    slots.forEach((s, i) => {
+      s.className = 'box-slot ready';
+      s.textContent = randomBox();
+      s.onclick = () => pickBox(i);
+    });
+    const drops = document.querySelectorAll('.drop-target');
+    drops.forEach((d, i) => {
+      d.className = 'drop-target waiting';
+      d.innerHTML = '&nbsp;';
+      d.onclick = () => dropBox(i);
+      delete d.dataset.slotIdx;
+    });
+  }
+
+  function updateExp() {
+    const rem = EXP_EVERY - (collected % EXP_EVERY);
+    document.getElementById('gwExp').textContent = rem;
+  }
+
+  function showPopup(txt) {
+    const p = document.getElementById('gwPopup');
+    p.textContent = txt;
+    p.classList.add('show');
+    setTimeout(() => p.classList.remove('show'), 1600);
+  }
+
+  function showCdMsg(txt) {
+    const m = document.getElementById('gwCdMsg');
+    m.textContent = txt;
+    m.style.display = 'block';
+    clearTimeout(m._t);
+    m._t = setTimeout(() => m.style.display = 'none', 1500);
+  }
+
+  function startCdBar() {
+    const bar = document.getElementById('cdBar');
+    const sec = document.getElementById('cdSec');
+    clearInterval(cdInt);
+    const start = Date.now();
+    cdInt = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const pct = Math.max(0, 100 - (elapsed / COOLDOWN) * 100);
+      bar.style.width = pct + '%';
+      const s = Math.max(0, Math.ceil((COOLDOWN - elapsed) / 1000));
+      sec.textContent = s + 'с';
+      if (elapsed >= COOLDOWN) {
+        clearInterval(cdInt);
+        bar.style.width = '100%';
+        sec.textContent = '0с';
+      }
+    }, 80);
+  }
+
+  function gwFinish() {
+    gameActive = false;
+    clearInterval(timerInt);
+    clearInterval(cdInt);
+    document.querySelectorAll('.box-slot').forEach(s => s.onclick = null);
+    document.querySelectorAll('.drop-target').forEach(d => d.onclick = null);
+
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.sendData(JSON.stringify({ action: 'loader', count: collected }));
+      setTimeout(() => window.Telegram.WebApp.close(), 500);
+    } else {
+      showPopup('Перенесено: ' + collected + ' коробок!');
+    }
+  }
+
+  function init() {
+    buildZones();
+    setPlayerPos('mid');
+    updateExp();
+    timerInt = setInterval(() => {
+      timeElapsed++;
+      document.getElementById('gwTimer').textContent = timeElapsed;
+    }, 1000);
+  }
+
+  init();
+</script>
