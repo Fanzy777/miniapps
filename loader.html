@@ -28,8 +28,12 @@
             padding: 10px;
             display: flex;
             justify-content: space-around;
-            font-size: 18px;
+            font-size: 15px;
+            flex-wrap: wrap;
+            gap: 4px;
         }
+        .stats span { white-space: nowrap; }
+        .earned-highlight { color: #4ddd88; font-weight: bold; }
         .exp-hint {
             background: rgba(240,165,0,0.15);
             border: 1px solid rgba(240,165,0,0.4);
@@ -56,7 +60,24 @@
             white-space: nowrap;
         }
         .exp-popup.show { opacity: 1; }
-
+        .money-popup {
+            position: fixed;
+            top: 115px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(60,200,100,0.92);
+            color: #001a00;
+            padding: 7px 18px;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: bold;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.25s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .money-popup.show { opacity: 1; }
         .game-area {
             flex: 1;
             display: flex;
@@ -67,7 +88,6 @@
             padding: 20px 16px;
             position: relative;
         }
-
         .zone-label {
             font-size: 13px;
             color: rgba(255,255,255,0.55);
@@ -76,14 +96,12 @@
             text-align: center;
             margin-bottom: 6px;
         }
-
         .boxes-row {
             display: flex;
             gap: 10px;
             justify-content: center;
             flex-wrap: wrap;
         }
-
         .box-slot {
             width: 58px;
             height: 58px;
@@ -106,20 +124,17 @@
             cursor: default;
             opacity: 0.6;
         }
-
         .arrow-area {
             font-size: 32px;
             opacity: 0.5;
             letter-spacing: 4px;
         }
-
         .drop-row {
             display: flex;
             gap: 10px;
             justify-content: center;
             flex-wrap: wrap;
         }
-
         .drop-slot {
             width: 58px;
             height: 58px;
@@ -149,7 +164,6 @@
             from { box-shadow: 0 0 0 0 rgba(60,200,100,0.4); }
             to   { box-shadow: 0 0 0 8px rgba(60,200,100,0); }
         }
-
         .cd-wrap {
             width: 100%;
             max-width: 340px;
@@ -173,7 +187,6 @@
             transition: width 0.1s linear;
             width: 100%;
         }
-
         .cooldown-msg {
             position: fixed;
             top: 50%;
@@ -191,7 +204,6 @@
             display: none;
             white-space: nowrap;
         }
-
         .footer {
             background: rgba(0,0,0,0.5);
             padding: 15px;
@@ -199,9 +211,9 @@
             justify-content: center;
         }
         button {
-            background: #cc3300;
+            background: #1a7a3a;
             color: white;
-            border: 2px solid #991100;
+            border: 2px solid #0f5528;
             padding: 15px 30px;
             font-size: 18px;
             border-radius: 10px;
@@ -216,12 +228,14 @@
 <body>
     <div class="header">📦 ГРУЗЧИК</div>
     <div class="stats">
-        <span>Перенесено: <span id="count">0</span></span>
+        <span>📦 Коробок: <span id="count">0</span></span>
+        <span>💵 Заработано: <span id="earned" class="earned-highlight">$0</span></span>
         <span>⏱️ Время: <span id="timer">0</span>с</span>
         <span>✨ До опыта: <span id="expCountdown">5</span></span>
     </div>
-    <div class="exp-hint">⭐ Каждые 5 коробок = +1 опыт при сдаче</div>
+    <div class="exp-hint">⭐ Каждые 5 коробок = +1 опыт | 💵 1 коробка = $7</div>
     <div class="exp-popup" id="expPopup">⭐ +1 опыт при сдаче!</div>
+    <div class="money-popup" id="moneyPopup">+$7</div>
     <div class="cooldown-msg" id="cooldownMsg">⏳ Не так быстро!</div>
 
     <div class="game-area">
@@ -245,7 +259,7 @@
     </div>
 
     <div class="footer">
-        <button onclick="finishWork()">🏁 ЗАКОНЧИТЬ РАБОТУ</button>
+        <button onclick="finishWork()">💰 СДАТЬ ГРУЗ</button>
     </div>
 
     <script>
@@ -256,8 +270,10 @@
         const SLOTS = 5;
         const EXP_EVERY = 5;
         const COOLDOWN = 4000;
+        const PAY_PER_BOX = 7;
 
         let collected = 0;
+        let earned = 0;
         let timeElapsed = 0;
         let gameActive = true;
         let carrying = false;
@@ -336,8 +352,12 @@
             carrying = false;
             carryingSlotIdx = -1;
             collected++;
+            earned += PAY_PER_BOX;
+
             document.getElementById('count').textContent = collected;
+            document.getElementById('earned').textContent = '$' + earned;
             updateExp();
+            showMoneyPopup();
 
             if (collected % EXP_EVERY === 0) showExpPopup();
 
@@ -356,6 +376,13 @@
             const p = document.getElementById('expPopup');
             p.classList.add('show');
             setTimeout(() => p.classList.remove('show'), 1600);
+        }
+
+        function showMoneyPopup() {
+            const p = document.getElementById('moneyPopup');
+            p.textContent = '+$' + PAY_PER_BOX;
+            p.classList.add('show');
+            setTimeout(() => p.classList.remove('show'), 1000);
         }
 
         function showCooldown(s) {
@@ -389,7 +416,11 @@
             gameActive = false;
             clearInterval(timerInterval);
             clearInterval(cdInterval);
-            tg.sendData(JSON.stringify({ action: 'loader', count: collected }));
+            tg.sendData(JSON.stringify({
+                action: 'loader',
+                count: collected,
+                earned: earned
+            }));
             setTimeout(() => tg.close(), 500);
         }
 
