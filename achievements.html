@@ -9,9 +9,7 @@
     <style>
         :root {
             --gold: #f0c040;
-            --gold-dim: #a07c10;
             --green: #3ddc84;
-            --green-dim: #1a5c38;
             --blue: #4da8ff;
             --gc: #b06aff;
             --bg: #0d0f1a;
@@ -59,6 +57,7 @@
             color: #1a0800;
             flex-shrink: 0;
             box-shadow: 0 0 0 2px rgba(240,192,64,0.3);
+            overflow: hidden;
         }
         .header-info { flex: 1; }
         .header-nick {
@@ -123,9 +122,7 @@
         }
 
         /* CONTENT */
-        .content {
-            padding: 12px 16px 100px;
-        }
+        .content { padding: 12px 16px 100px; }
         .category-title {
             font-family: 'Oswald', sans-serif;
             font-size: 13px;
@@ -136,7 +133,21 @@
             margin: 16px 0 10px;
         }
 
-        /* ACHIEVEMENT CARD */
+        /* EMPTY */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255,255,255,0.3);
+        }
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-state .empty-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+        .empty-state .empty-sub { font-size: 13px; }
+
+        /* CARD */
         .ach-card {
             background: var(--bg2);
             border: 1px solid var(--border);
@@ -231,45 +242,9 @@
             align-items: center;
             gap: 3px;
         }
-        .reward-tag.money {
-            background: rgba(240,192,64,0.12);
-            color: var(--gold);
-            border: 1px solid rgba(240,192,64,0.25);
-        }
-        .reward-tag.exp {
-            background: rgba(77,168,255,0.12);
-            color: var(--blue);
-            border: 1px solid rgba(77,168,255,0.25);
-        }
-        .reward-tag.gc {
-            background: rgba(176,106,255,0.12);
-            color: var(--gc);
-            border: 1px solid rgba(176,106,255,0.25);
-        }
-
-        /* PROGRESS BAR */
-        .ach-progress { margin-top: 8px; }
-        .progress-bar-bg {
-            height: 4px;
-            background: rgba(255,255,255,0.08);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-        .progress-bar-fill {
-            height: 100%;
-            border-radius: 2px;
-            background: linear-gradient(90deg, var(--gold), #e07800);
-            transition: width 0.6s ease;
-        }
-        .ach-card.done .progress-bar-fill {
-            background: linear-gradient(90deg, var(--green), #1a9a50);
-        }
-        .progress-text {
-            font-size: 10px;
-            color: var(--muted);
-            margin-top: 4px;
-            text-align: right;
-        }
+        .reward-tag.money { background: rgba(240,192,64,0.12); color: var(--gold); border: 1px solid rgba(240,192,64,0.25); }
+        .reward-tag.exp { background: rgba(77,168,255,0.12); color: var(--blue); border: 1px solid rgba(77,168,255,0.25); }
+        .reward-tag.gc { background: rgba(176,106,255,0.12); color: var(--gc); border: 1px solid rgba(176,106,255,0.25); }
 
         /* MODAL */
         .modal-overlay {
@@ -283,10 +258,7 @@
             pointer-events: none;
             transition: opacity 0.25s;
         }
-        .modal-overlay.show {
-            opacity: 1;
-            pointer-events: all;
-        }
+        .modal-overlay.show { opacity: 1; pointer-events: all; }
         .modal {
             background: var(--bg3);
             border-radius: 20px 20px 0 0;
@@ -296,19 +268,15 @@
             transform: translateY(100%);
             transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
         }
-        .modal-overlay.show .modal {
-            transform: translateY(0);
-        }
+        .modal-overlay.show .modal { transform: translateY(0); }
         .modal-handle {
-            width: 36px;
-            height: 4px;
+            width: 36px; height: 4px;
             background: rgba(255,255,255,0.15);
             border-radius: 2px;
             margin: 0 auto 20px;
         }
         .modal-icon {
-            width: 72px;
-            height: 72px;
+            width: 72px; height: 72px;
             border-radius: 18px;
             display: flex;
             align-items: center;
@@ -318,73 +286,38 @@
             background: rgba(255,255,255,0.05);
             border: 1px solid var(--border);
         }
-        .modal-icon.done {
-            background: rgba(61,220,132,0.12);
-            border-color: rgba(61,220,132,0.3);
-        }
+        .modal-icon.done { background: rgba(61,220,132,0.12); border-color: rgba(61,220,132,0.3); }
         .modal-name {
             font-family: 'Oswald', sans-serif;
-            font-size: 22px;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 6px;
+            font-size: 22px; font-weight: 700;
+            text-align: center; margin-bottom: 6px;
         }
         .modal-category {
-            font-size: 12px;
-            color: var(--muted);
-            text-align: center;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 16px;
+            font-size: 12px; color: var(--muted);
+            text-align: center; letter-spacing: 1px;
+            text-transform: uppercase; margin-bottom: 16px;
         }
         .modal-desc {
-            font-size: 14px;
-            color: rgba(255,255,255,0.7);
-            text-align: center;
-            line-height: 1.6;
-            margin-bottom: 20px;
+            font-size: 14px; color: rgba(255,255,255,0.7);
+            text-align: center; line-height: 1.6; margin-bottom: 20px;
         }
         .modal-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
-            margin: 0 auto 20px;
-            display: flex;
-            justify-content: center;
+            padding: 8px 16px; border-radius: 12px;
+            font-size: 13px; font-weight: 600;
+            margin-bottom: 20px;
+            display: flex; justify-content: center;
         }
-        .modal-status.done {
-            background: rgba(61,220,132,0.12);
-            color: var(--green);
-            border: 1px solid rgba(61,220,132,0.25);
-        }
-        .modal-status.pending {
-            background: rgba(255,255,255,0.05);
-            color: var(--muted);
-            border: 1px solid var(--border);
-        }
+        .modal-status.done { background: rgba(61,220,132,0.12); color: var(--green); border: 1px solid rgba(61,220,132,0.25); }
+        .modal-status.pending { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
         .modal-rewards-title {
-            font-size: 11px;
-            color: var(--muted);
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            margin-bottom: 10px;
+            font-size: 11px; color: var(--muted);
+            letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px;
         }
-        .modal-rewards {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
+        .modal-rewards { display: flex; gap: 8px; flex-wrap: wrap; }
         .modal-reward-tag {
-            flex: 1;
-            min-width: 80px;
-            padding: 10px;
-            border-radius: 12px;
-            text-align: center;
-            font-weight: 600;
+            flex: 1; min-width: 80px;
+            padding: 10px; border-radius: 12px;
+            text-align: center; font-weight: 600;
         }
         .modal-reward-tag .r-icon { font-size: 18px; display: block; margin-bottom: 4px; }
         .modal-reward-tag .r-val { font-size: 14px; display: block; }
@@ -392,52 +325,21 @@
         .modal-reward-tag.money { background: rgba(240,192,64,0.1); color: var(--gold); border: 1px solid rgba(240,192,64,0.2); }
         .modal-reward-tag.exp { background: rgba(77,168,255,0.1); color: var(--blue); border: 1px solid rgba(77,168,255,0.2); }
         .modal-reward-tag.gc { background: rgba(176,106,255,0.1); color: var(--gc); border: 1px solid rgba(176,106,255,0.2); }
-
-        .modal-progress-wrap { margin-top: 20px; }
-        .modal-progress-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: var(--muted);
-            margin-bottom: 6px;
-        }
-        .modal-progress-bg {
-            height: 8px;
-            background: rgba(255,255,255,0.08);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        .modal-progress-fill {
-            height: 100%;
-            border-radius: 4px;
-            background: linear-gradient(90deg, var(--gold), #e07800);
-            transition: width 0.8s ease;
-        }
-        .modal-progress-fill.done {
-            background: linear-gradient(90deg, var(--green), #1a9a50);
-        }
-
         .close-btn {
-            width: 100%;
-            margin-top: 20px;
-            padding: 14px;
+            width: 100%; margin-top: 20px; padding: 14px;
             background: rgba(255,255,255,0.06);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            color: var(--text);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
+            border: 1px solid var(--border); border-radius: 12px;
+            color: var(--text); font-size: 14px; font-weight: 600;
+            cursor: pointer; font-family: 'Inter', sans-serif;
         }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="header-top">
-            <div class="avatar" id="avatarEl">Т</div>
+            <div class="avatar" id="avatarEl"></div>
             <div class="header-info">
-                <div class="header-nick" id="nickEl">Тест</div>
+                <div class="header-nick" id="nickEl">—</div>
                 <div class="header-sub">Гангстерский Мир — Достижения</div>
             </div>
         </div>
@@ -448,11 +350,10 @@
     </div>
 
     <div class="tabs" id="tabsEl"></div>
-
     <div class="content" id="contentEl"></div>
 
     <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
-        <div class="modal" id="modalEl">
+        <div class="modal">
             <div class="modal-handle"></div>
             <div class="modal-icon" id="mIcon"></div>
             <div class="modal-name" id="mName"></div>
@@ -461,15 +362,6 @@
             <div class="modal-status" id="mStatus"></div>
             <div class="modal-rewards-title">🎁 НАГРАДЫ</div>
             <div class="modal-rewards" id="mRewards"></div>
-            <div class="modal-progress-wrap" id="mProgressWrap">
-                <div class="modal-progress-label">
-                    <span>Прогресс</span>
-                    <span id="mProgressText"></span>
-                </div>
-                <div class="modal-progress-bg">
-                    <div class="modal-progress-fill" id="mProgressFill"></div>
-                </div>
-            </div>
             <button class="close-btn" onclick="closeModalBtn()">Закрыть</button>
         </div>
     </div>
@@ -479,103 +371,40 @@
         tg.ready();
         tg.expand();
 
-        // ========== ДАННЫЕ ==========
-        // В продакшне nickname и прогресс передаются через URL параметры
         const params = new URLSearchParams(window.location.search);
-        const NICKNAME = params.get('nick') || 'Тест';
-        // Прогресс: строка вида "1,3,5" — id выполненных достижений
+        const NICKNAME = params.get('nick') || 'Игрок';
+        const photoUrl = params.get('photo');
         const doneIds = new Set((params.get('done') || '').split(',').filter(Boolean).map(Number));
 
-        const ACHIEVEMENTS = [
-            {
-                id: 1, category: 'Работа',
-                icon: '🍾', name: 'Первый сбор',
-                desc: 'Собери 10 бутылок в мини-игре сборщика.',
-                goal: 10, progress: 10,
-                rewards: { money: 500, exp: 50, gc: 0 }
-            },
-            {
-                id: 2, category: 'Работа',
-                icon: '📦', name: 'Грузчик-новобранец',
-                desc: 'Перенеси 20 коробок в мини-игре грузчика.',
-                goal: 20, progress: 8,
-                rewards: { money: 700, exp: 80, gc: 0 }
-            },
-            {
-                id: 3, category: 'Работа',
-                icon: '💼', name: 'Трудяга',
-                desc: 'Заработай $1000 на работах суммарно.',
-                goal: 1000, progress: 340,
-                rewards: { money: 1500, exp: 150, gc: 5 }
-            },
-            {
-                id: 4, category: 'Криминал',
-                icon: '🚗', name: 'Угонщик',
-                desc: 'Успешно угони свой первый автомобиль.',
-                goal: 1, progress: 1,
-                rewards: { money: 1000, exp: 100, gc: 0 }
-            },
-            {
-                id: 5, category: 'Криминал',
-                icon: '🔫', name: 'Серийный угонщик',
-                desc: 'Угони 10 автомобилей без провалов подряд.',
-                goal: 10, progress: 4,
-                rewards: { money: 5000, exp: 500, gc: 10 }
-            },
-            {
-                id: 6, category: 'Криминал',
-                icon: '👊', name: 'Уличный боец',
-                desc: 'Выиграй 5 уличных стычек.',
-                goal: 5, progress: 2,
-                rewards: { money: 2000, exp: 200, gc: 0 }
-            },
-            {
-                id: 7, category: 'Социальное',
-                icon: '🤝', name: 'Свой в доску',
-                desc: 'Вступи в любую ОПГ.',
-                goal: 1, progress: 0,
-                rewards: { money: 0, exp: 300, gc: 15 }
-            },
-            {
-                id: 8, category: 'Социальное',
-                icon: '👑', name: 'Лидер банды',
-                desc: 'Стань лидером ОПГ.',
-                goal: 1, progress: 0,
-                rewards: { money: 10000, exp: 1000, gc: 50 }
-            },
-            {
-                id: 9, category: 'Прогресс',
-                icon: '⭐', name: 'Опытный гангстер',
-                desc: 'Достигни 5 уровня.',
-                goal: 5, progress: 2,
-                rewards: { money: 3000, exp: 0, gc: 20 }
-            },
-            {
-                id: 10, category: 'Прогресс',
-                icon: '💰', name: 'Богач',
-                desc: 'Накопи на балансе $10 000.',
-                goal: 10000, progress: 1200,
-                rewards: { money: 0, exp: 500, gc: 30 }
-            }
-        ];
+        let ACHIEVEMENTS = [];
+        try {
+            ACHIEVEMENTS = JSON.parse(params.get('achs') || '[]');
+        } catch(e) {
+            ACHIEVEMENTS = [];
+        }
 
-        // Применяем выполненные из URL
-        ACHIEVEMENTS.forEach(a => {
-            if (doneIds.has(a.id)) a.progress = a.goal;
-        });
+        // Отмечаем выполненные
+        ACHIEVEMENTS.forEach(a => { a.done = doneIds.has(a.id); });
 
-        const CATEGORIES = ['Все', ...new Set(ACHIEVEMENTS.map(a => a.category))];
-        let activeCategory = 'Все';
+        // Аватарка
+        const avatarEl = document.getElementById('avatarEl');
+        if (photoUrl) {
+            avatarEl.innerHTML = `<img src="${photoUrl}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">`;
+        } else {
+            avatarEl.textContent = NICKNAME.charAt(0).toUpperCase();
+        }
+        document.getElementById('nickEl').textContent = NICKNAME;
 
-        // ========== РЕНДЕР ХЕДЕРА ==========
-        const nick = NICKNAME;
-        document.getElementById('nickEl').textContent = nick;
-        document.getElementById('avatarEl').textContent = nick.charAt(0).toUpperCase();
-        const doneCount = ACHIEVEMENTS.filter(a => a.progress >= a.goal).length;
-        document.getElementById('doneCount').textContent = doneCount;
+        // Счётчики
+        document.getElementById('doneCount').textContent = ACHIEVEMENTS.filter(a => a.done).length;
         document.getElementById('totalCount').textContent = ACHIEVEMENTS.length;
 
-        // ========== ТАБЫ ==========
+        // Категории
+        const cats = [...new Set(ACHIEVEMENTS.map(a => a.cat).filter(Boolean))];
+        const CATEGORIES = cats.length > 1 ? ['Все', ...cats] : cats;
+        let activeCategory = CATEGORIES[0] || 'Все';
+
+        // Табы
         const tabsEl = document.getElementById('tabsEl');
         CATEGORIES.forEach(cat => {
             const t = document.createElement('div');
@@ -590,18 +419,64 @@
             tabsEl.appendChild(t);
         });
 
-        // ========== РЕНДЕР КАРТОЧЕК ==========
+        function buildRewardTags(a) {
+            let html = '';
+            if (a.money > 0) html += `<div class="reward-tag money">💵 $${Number(a.money).toLocaleString()}</div>`;
+            if (a.exp > 0) html += `<div class="reward-tag exp">⭐ ${a.exp} опыт</div>`;
+            if (a.gc > 0) html += `<div class="reward-tag gc">💎 ${a.gc} GC</div>`;
+            return html || '<span style="font-size:12px;color:var(--muted)">Без награды</span>';
+        }
+
+        function makeCard(a) {
+            const card = document.createElement('div');
+            card.className = 'ach-card' + (a.done ? ' done' : '');
+            card.onclick = () => openModal(a);
+            card.innerHTML = `
+                <div class="ach-icon">${a.icon || '🏆'}</div>
+                <div class="ach-body">
+                    <div class="ach-top">
+                        <div class="ach-name">${a.name}</div>
+                        <div class="ach-badge ${a.done ? 'done' : 'pending'}">${a.done ? '✅ ВЫПОЛНЕНО' : '⏳ НЕ ВЫПОЛНЕНО'}</div>
+                    </div>
+                    <div class="ach-desc">${a.desc || ''}</div>
+                    <div class="ach-rewards">${buildRewardTags(a)}</div>
+                </div>
+            `;
+            return card;
+        }
+
         function renderContent() {
             const contentEl = document.getElementById('contentEl');
             contentEl.innerHTML = '';
-            const filtered = activeCategory === 'Все'
+
+            if (ACHIEVEMENTS.length === 0) {
+                contentEl.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">😔</div>
+                        <div class="empty-title">Пока пусто...</div>
+                        <div class="empty-sub">Достижения ещё не добавлены</div>
+                    </div>`;
+                return;
+            }
+
+            const filtered = (activeCategory === 'Все')
                 ? ACHIEVEMENTS
-                : ACHIEVEMENTS.filter(a => a.category === activeCategory);
+                : ACHIEVEMENTS.filter(a => a.cat === activeCategory);
+
+            if (filtered.length === 0) {
+                contentEl.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">😔</div>
+                        <div class="empty-title">Пока пусто :(</div>
+                        <div class="empty-sub">В этой категории нет достижений</div>
+                    </div>`;
+                return;
+            }
 
             if (activeCategory === 'Все') {
-                const cats = [...new Set(ACHIEVEMENTS.map(a => a.category))];
                 cats.forEach(cat => {
-                    const items = ACHIEVEMENTS.filter(a => a.category === cat);
+                    const items = ACHIEVEMENTS.filter(a => a.cat === cat);
+                    if (!items.length) return;
                     const title = document.createElement('div');
                     title.className = 'category-title';
                     title.textContent = cat;
@@ -613,77 +488,30 @@
             }
         }
 
-        function makeCard(a) {
-            const done = a.progress >= a.goal;
-            const pct = Math.min(100, Math.round(a.progress / a.goal * 100));
-            const card = document.createElement('div');
-            card.className = 'ach-card' + (done ? ' done' : '');
-            card.onclick = () => openModal(a);
-
-            const rewardsHtml = buildRewardTags(a.rewards);
-
-            card.innerHTML = `
-                <div class="ach-icon">${a.icon}</div>
-                <div class="ach-body">
-                    <div class="ach-top">
-                        <div class="ach-name">${a.name}</div>
-                        <div class="ach-badge ${done ? 'done' : 'pending'}">${done ? '✅ ВЫПОЛНЕНО' : '⏳ В ПРОЦЕССЕ'}</div>
-                    </div>
-                    <div class="ach-desc">${a.desc}</div>
-                    <div class="ach-rewards">${rewardsHtml}</div>
-                    <div class="ach-progress">
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" style="width:${pct}%"></div>
-                        </div>
-                        <div class="progress-text">${a.progress} / ${a.goal}</div>
-                    </div>
-                </div>
-            `;
-            return card;
-        }
-
-        function buildRewardTags(rewards) {
-            let html = '';
-            if (rewards.money > 0) html += `<div class="reward-tag money">💵 $${rewards.money.toLocaleString()}</div>`;
-            if (rewards.exp > 0) html += `<div class="reward-tag exp">⭐ ${rewards.exp} опыт</div>`;
-            if (rewards.gc > 0) html += `<div class="reward-tag gc">💎 ${rewards.gc} GC</div>`;
-            return html;
-        }
-
-        // ========== МОДАЛ ==========
         function openModal(a) {
-            const done = a.progress >= a.goal;
-            const pct = Math.min(100, Math.round(a.progress / a.goal * 100));
-
-            document.getElementById('mIcon').className = 'modal-icon' + (done ? ' done' : '');
-            document.getElementById('mIcon').textContent = a.icon;
+            document.getElementById('mIcon').className = 'modal-icon' + (a.done ? ' done' : '');
+            document.getElementById('mIcon').textContent = a.icon || '🏆';
             document.getElementById('mName').textContent = a.name;
-            document.getElementById('mCat').textContent = a.category;
-            document.getElementById('mDesc').textContent = a.desc;
+            document.getElementById('mCat').textContent = a.cat || '';
+            document.getElementById('mDesc').textContent = a.desc || '';
 
             const statusEl = document.getElementById('mStatus');
-            statusEl.className = 'modal-status ' + (done ? 'done' : 'pending');
-            statusEl.textContent = done ? '✅ Достижение выполнено!' : '⏳ Ещё не выполнено';
+            statusEl.className = 'modal-status ' + (a.done ? 'done' : 'pending');
+            statusEl.textContent = a.done ? '✅ Достижение выполнено!' : '⏳ Ещё не выполнено';
 
             const rewardsEl = document.getElementById('mRewards');
             rewardsEl.innerHTML = '';
-            if (a.rewards.money > 0) rewardsEl.innerHTML += `<div class="modal-reward-tag money"><span class="r-icon">💵</span><span class="r-val">$${a.rewards.money.toLocaleString()}</span><span class="r-label">Деньги</span></div>`;
-            if (a.rewards.exp > 0) rewardsEl.innerHTML += `<div class="modal-reward-tag exp"><span class="r-icon">⭐</span><span class="r-val">${a.rewards.exp}</span><span class="r-label">Опыт</span></div>`;
-            if (a.rewards.gc > 0) rewardsEl.innerHTML += `<div class="modal-reward-tag gc"><span class="r-icon">💎</span><span class="r-val">${a.rewards.gc}</span><span class="r-label">GC</span></div>`;
-
-            document.getElementById('mProgressText').textContent = `${a.progress} / ${a.goal} (${pct}%)`;
-            const fill = document.getElementById('mProgressFill');
-            fill.className = 'modal-progress-fill' + (done ? ' done' : '');
-            fill.style.width = '0%';
-            setTimeout(() => fill.style.width = pct + '%', 50);
+            if (a.money > 0) rewardsEl.innerHTML += `<div class="modal-reward-tag money"><span class="r-icon">💵</span><span class="r-val">$${Number(a.money).toLocaleString()}</span><span class="r-label">Деньги</span></div>`;
+            if (a.exp > 0) rewardsEl.innerHTML += `<div class="modal-reward-tag exp"><span class="r-icon">⭐</span><span class="r-val">${a.exp}</span><span class="r-label">Опыт</span></div>`;
+            if (a.gc > 0) rewardsEl.innerHTML += `<div class="modal-reward-tag gc"><span class="r-icon">💎</span><span class="r-val">${a.gc}</span><span class="r-label">GC</span></div>`;
+            if (!a.money && !a.exp && !a.gc) rewardsEl.innerHTML = `<span style="font-size:13px;color:var(--muted)">Без награды</span>`;
 
             document.getElementById('modalOverlay').classList.add('show');
         }
 
         function closeModal(e) {
-            if (e.target === document.getElementById('modalOverlay')) {
+            if (e.target === document.getElementById('modalOverlay'))
                 document.getElementById('modalOverlay').classList.remove('show');
-            }
         }
         function closeModalBtn() {
             document.getElementById('modalOverlay').classList.remove('show');
